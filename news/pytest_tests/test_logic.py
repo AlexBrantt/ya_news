@@ -15,10 +15,11 @@ def test_anonymous_user_cant_create_comment(client,
 
 
 def test_user_can_create_comment(author_client, detail_url, comment_form_data):
+    comments_start_count = Comment.objects.count()
     response = author_client.post(detail_url, data=comment_form_data)
     assertRedirects(response, f'{detail_url}#comments')
     comments_count = Comment.objects.count()
-    assert comments_count == 1
+    assert comments_count == comments_start_count + 1
     comment = Comment.objects.get()
     assert comment.text == comment_form_data['text']
     assert comment.news == comment_form_data['news']
@@ -72,7 +73,6 @@ def test_author_can_edit_comment(author_client,
 def test_user_cant_edit_comment_of_another_user(not_author_client,
                                                 comment_edit_url,
                                                 comment_form_data,
-                                                comment_id_for_args,
                                                 comment):
     response = not_author_client.post(comment_edit_url, data=comment_form_data)
     assert response.status_code == HTTPStatus.NOT_FOUND
